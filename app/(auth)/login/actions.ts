@@ -6,7 +6,10 @@ import { err, ok, type ActionResult } from "@/lib/actions/result";
 
 function appUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL;
-  return fromEnv && fromEnv.length > 0 ? fromEnv : "http://localhost:3000";
+  if (fromEnv && fromEnv.length > 0) return fromEnv;
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  if (vercel && vercel.length > 0) return `https://${vercel}`;
+  return "http://localhost:3000";
 }
 
 export async function requestMagicLinkAction(input: unknown): Promise<ActionResult<{ email: string }>> {

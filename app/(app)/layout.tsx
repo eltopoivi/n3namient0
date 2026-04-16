@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/nav/bottom-nav";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const {
