@@ -14,9 +14,11 @@ type Status =
   | { kind: "error"; message: string }
   | { kind: "sent"; email: string };
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, callbackError }: { next: string; callbackError: string | null }) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [status, setStatus] = useState<Status>(
+    callbackError ? { kind: "error", message: `No se pudo iniciar sesión: ${callbackError}` } : { kind: "idle" },
+  );
   const [pending, startTransition] = useTransition();
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {

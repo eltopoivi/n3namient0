@@ -7,12 +7,13 @@ export const metadata = {
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: { next?: string };
+  searchParams: { next?: string; error?: string };
 }) {
   const next = searchParams.next ?? "/";
+  const callbackError = searchParams.error ?? null;
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
-      <LoginForm next={next} />
+      <LoginForm next={next} callbackError={callbackError} />
     </main>
   );
 }
