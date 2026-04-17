@@ -1,53 +1,46 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { magicLinkSchema } from "@/lib/schemas/auth";
+import { signInSchema } from "@/lib/schemas/auth";
 import { err, ok, type ActionResult } from "@/lib/actions/result";
 
-function appUrl(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_APP_URL;
-  if (fromEnv && fromEnv.length > 0) return fromEnv;
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
-  if (vercel && vercel.length > 0) return `https://${vercel}`;
-  return "http://localhost:3000";
-}
-
 function hasSupabaseEnv(): boolean {
-  return (
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  return !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 }
 
-export async function requestMagicLinkAction(input: unknown): Promise<ActionResult<{ email: string }>> {
-  const parsed = magicLinkSchema.safeParse(input);
+function translate(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("invalid login credentials")) return "Email o contraseña incorrectos.";
+  if (m.includes("email not confirmed")) {
+    return "Confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.";
+  }
+  return message;
+}
+
+export async function signInAction(input: unknown): Promise<ActionResult<null>> {
+  const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
     return err("Datos inválidos", parsed.error.flatten().fieldErrors);
   }
 
   if (!hasSupabaseEnv()) {
-    return err(
-      "Configuración incompleta: faltan NEXT_PUBLIC_SUPABASE_URL y/o NEXT_PUBLIC_SUPABASE_ANON_KEY en el entorno.",
-    );
+    return err("Configuración incompleta del servidor. Contacta al administrador.");
   }
 
   try {
     const supabase = createClient();
-    const redirectPath = parsed.data.next ?? "/";
-    const emailRedirectTo = `${appUrl()}/auth/callback?next=${encodeURIComponent(redirectPath)}`;
-
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: parsed.data.email,
-      options: { emailRedirectTo, shouldCreateUser: true },
+      password: parsed.data.password,
     });
 
     if (error) {
-      return err(error.message);
+      return err(translate(error.message));
     }
 
-    return ok({ email: parsed.data.email });
+    return ok(null);
   } catch (cause) {
-    console.error("requestMagicLinkAction failed", cause);
+    console.error("signInAction failed", cause);
     const message = cause instanceof Error ? cause.message : "Error inesperado";
     return err(message);
   }
