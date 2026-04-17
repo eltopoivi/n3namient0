@@ -17,7 +17,7 @@ const ITEMS = [
 export function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden">
       <ul className="mx-auto flex max-w-md items-stretch justify-between px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
         {ITEMS.map((item) => {
           const Icon = item.icon;
@@ -27,7 +27,7 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-xs",
+                  "flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-[11px]",
                   active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >

@@ -54,13 +54,11 @@ export default async function PerfilPage() {
     : [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <header className="flex items-start justify-between">
+    <div className="flex flex-col gap-6">
+      <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Perfil</h1>
-          <p className="text-sm text-muted-foreground">
-            {user?.email ?? "—"}
-          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">Perfil</h1>
+          <p className="text-sm text-muted-foreground">{user?.email ?? "—"}</p>
         </div>
         <SignOutButton />
       </header>
@@ -68,7 +66,7 @@ export default async function PerfilPage() {
       <Card>
         <CardHeader>
           <CardTitle>Datos</CardTitle>
-          <CardDescription>FCmax, zonas, peso, motivación.</CardDescription>
+          <CardDescription>FC, peso, zonas, motivación.</CardDescription>
         </CardHeader>
         <CardContent>
           <ProfileForm

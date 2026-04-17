@@ -18,11 +18,13 @@ export function HealthTabs({
   rhr,
   hrv,
   weights,
+  hrvRange,
 }: {
   sleeps: HealthRow[];
   rhr: HealthRow[];
   hrv: HealthRow[];
   weights: HealthRow[];
+  hrvRange: { min: number; max: number } | null;
 }) {
   const [active, setActive] = useState<(typeof TABS)[number]["key"]>("sleep");
 
@@ -34,15 +36,15 @@ export function HealthTabs({
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <nav className="flex gap-1 rounded-md border p-1">
+    <div className="flex flex-col gap-4">
+      <nav className="inline-flex gap-1 self-start rounded-md border border-border bg-card p-1">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setActive(t.key)}
             className={cn(
-              "flex-1 rounded-md px-3 py-1.5 text-sm",
+              "rounded-md px-4 py-1.5 text-sm transition-colors",
               active === t.key ? "bg-foreground text-background" : "hover:bg-accent",
             )}
           >
@@ -50,7 +52,7 @@ export function HealthTabs({
           </button>
         ))}
       </nav>
-      <HealthTab kind={active} rows={data[active]} />
+      <HealthTab kind={active} rows={data[active]} hrvRange={hrvRange} />
     </div>
   );
 }

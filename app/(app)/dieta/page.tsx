@@ -50,52 +50,55 @@ export default async function DietaPage({ searchParams }: { searchParams: { d?: 
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Dieta</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Dieta</h1>
         <p className="text-sm text-muted-foreground">{date}</p>
       </header>
 
-      <Hydration date={date} totalMl={totalMl} />
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Hydration date={date} totalMl={totalMl} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Totales del día</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-4 gap-2 text-center text-xs">
+              <Stat label="kcal" value={Math.round(totals.kcal).toString()} />
+              <Stat label="Prot" value={`${Math.round(totals.protein)} g`} />
+              <Stat label="Carbs" value={`${Math.round(totals.carbs)} g`} />
+              <Stat label="Grasa" value={`${Math.round(totals.fat)} g`} />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Totales del día</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-4 gap-2 text-center text-xs">
-            <Stat label="kcal" value={Math.round(totals.kcal).toString()} />
-            <Stat label="Prot" value={`${Math.round(totals.protein)} g`} />
-            <Stat label="Carbs" value={`${Math.round(totals.carbs)} g`} />
-            <Stat label="Grasa" value={`${Math.round(totals.fat)} g`} />
-          </div>
-        </CardContent>
-      </Card>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Nueva comida</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MealForm defaultDate={date} />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Nueva comida</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MealForm defaultDate={date} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Comidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MealList items={meals} />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Comidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MealList items={meals} />
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded bg-muted p-2">
+    <div className="rounded border border-border bg-background px-3 py-2">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="text-sm font-medium">{value}</div>
     </div>

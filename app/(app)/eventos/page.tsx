@@ -25,38 +25,42 @@ export default async function EventosPage() {
   const past = items.filter((e) => e.event_date < today);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Eventos</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Eventos</h1>
         <p className="text-sm text-muted-foreground">Carreras y citas importantes.</p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Nuevo evento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EventForm />
-        </CardContent>
-      </Card>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.2fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Nuevo evento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EventForm />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Próximos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EventList items={upcoming} />
-        </CardContent>
-      </Card>
+        <div className="flex flex-col gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Próximos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EventList items={upcoming} />
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pasados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EventList items={past.reverse()} />
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Pasados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EventList items={past.reverse()} />
+            </CardContent>
+          </Card>
+        </div>
+      </section>
     </div>
   );
 }

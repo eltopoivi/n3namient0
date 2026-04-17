@@ -27,12 +27,22 @@ export type HealthRow = {
 
 const META: Record<
   Kind,
-  { unit: string; label: string; table: "sleeps" | "rhr_readings" | "hrv_readings" | "weights" }
+  {
+    unit: string;
+    label: string;
+    table: "sleeps" | "rhr_readings" | "hrv_readings" | "weights";
+    color: string;
+  }
 > = {
-  sleep: { unit: "min", label: "Duración", table: "sleeps" },
-  rhr: { unit: "bpm", label: "RHR", table: "rhr_readings" },
-  hrv: { unit: "ms", label: "HRV", table: "hrv_readings" },
-  weight: { unit: "kg", label: "Peso", table: "weights" },
+  sleep: {
+    unit: "min",
+    label: "Duración",
+    table: "sleeps",
+    color: "hsl(var(--metric-sleep))",
+  },
+  rhr: { unit: "bpm", label: "RHR", table: "rhr_readings", color: "hsl(var(--metric-rhr))" },
+  hrv: { unit: "ms", label: "HRV", table: "hrv_readings", color: "hsl(var(--metric-hrv))" },
+  weight: { unit: "kg", label: "Peso", table: "weights", color: "hsl(var(--metric-weight))" },
 };
 
 function todayIso(): string {
@@ -45,7 +55,15 @@ function roundStr(n: number): string {
   return (Math.round(n * 10) / 10).toString();
 }
 
-export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
+export function HealthTab({
+  kind,
+  rows,
+  hrvRange,
+}: {
+  kind: Kind;
+  rows: HealthRow[];
+  hrvRange?: { min: number; max: number } | null;
+}) {
   const [date, setDate] = useState(todayIso());
 
   const [sleepH, setSleepH] = useState("");
@@ -73,6 +91,11 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
 
   const formatValue =
     kind === "sleep" ? formatMinutesHuman : (n: number) => `${roundStr(n)} ${META[kind].unit}`;
+
+  const band =
+    kind === "hrv" && hrvRange && hrvRange.min > 0 && hrvRange.max > hrvRange.min
+      ? { min: hrvRange.min, max: hrvRange.max, label: "rango" }
+      : undefined;
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -126,16 +149,22 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-md border p-3">
-        <SimpleLineChart data={chartData} unit={META[kind].unit} formatValue={formatValue} />
-        <div className="mt-2 grid grid-cols-3 gap-2 text-center text-xs">
+      <div className="rounded-md border border-border bg-card p-4">
+        <SimpleLineChart
+          data={chartData}
+          unit={META[kind].unit}
+          formatValue={formatValue}
+          color={META[kind].color}
+          band={band}
+        />
+        <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
           <StatMini label="Media" value={avg != null ? formatValue(avg) : "–"} />
           <StatMini label="Mín" value={mi != null ? formatValue(mi) : "–"} />
           <StatMini label="Máx" value={ma != null ? formatValue(ma) : "–"} />
         </div>
       </div>
 
-      <form onSubmit={submit} className="flex flex-col gap-3 rounded-md border p-3">
+      <form onSubmit={submit} className="flex flex-col gap-3 rounded-md border border-border bg-card p-4">
         <div className="flex flex-col gap-1">
           <Label>Fecha</Label>
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
@@ -193,7 +222,7 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
             {rows.map((r) => (
               <li
                 key={r.id}
-                className="flex items-center justify-between rounded-md border p-2 text-sm"
+                className="flex items-center justify-between rounded-md border border-border bg-card p-3 text-sm"
               >
                 <span>
                   <span className="font-medium">{r.date}</span> — {formatValue(r.value)}
@@ -218,7 +247,7 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
 
 function StatMini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded bg-muted p-2">
+    <div className="rounded border border-border bg-background px-3 py-2">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="text-sm font-medium">{value}</div>
     </div>

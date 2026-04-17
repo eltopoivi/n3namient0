@@ -9,9 +9,9 @@ export const metadata = { title: "Nuevo entreno · N300" };
 
 export default function NuevoEntrenoPage() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Nuevo entreno</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Nuevo entreno</h1>
         <Link
           href="/entrenamientos"
           className="text-sm text-muted-foreground underline-offset-4 hover:underline"

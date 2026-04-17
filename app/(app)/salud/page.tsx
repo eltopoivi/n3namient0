@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 
 import type { HealthRow } from "./health-tab";
@@ -11,13 +10,11 @@ export default async function SaludPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const limit = 90;
 
-  const [sleepsRes, rhrRes, hrvRes, weightsRes] = await Promise.all([
+  const [sleepsRes, rhrRes, hrvRes, weightsRes, profileRes] = await Promise.all([
     supabase
       .from("sleeps")
       .select("id,date,duration_min")
@@ -42,6 +39,11 @@ export default async function SaludPage() {
       .eq("user_id", user.id)
       .order("date", { ascending: false })
       .limit(limit),
+    supabase
+      .from("profiles")
+      .select("hrv_range_min,hrv_range_max")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
   const sleeps: HealthRow[] = (sleepsRes.data ?? []).map((r) => ({
@@ -65,20 +67,18 @@ export default async function SaludPage() {
     value: Number(r.kg),
   }));
 
+  const hrvRange =
+    profileRes.data?.hrv_range_min != null && profileRes.data?.hrv_range_max != null
+      ? { min: Number(profileRes.data.hrv_range_min), max: Number(profileRes.data.hrv_range_max) }
+      : null;
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Salud</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Salud</h1>
         <p className="text-sm text-muted-foreground">Sueño, RHR, HRV y peso.</p>
       </header>
-      <Card>
-        <CardHeader>
-          <CardTitle>Métricas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <HealthTabs sleeps={sleeps} rhr={rhr} hrv={hrv} weights={weights} />
-        </CardContent>
-      </Card>
+      <HealthTabs sleeps={sleeps} rhr={rhr} hrv={hrv} weights={weights} hrvRange={hrvRange} />
     </div>
   );
 }

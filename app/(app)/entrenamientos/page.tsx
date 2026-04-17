@@ -36,10 +36,10 @@ export default async function EntrenamientosPage() {
     : [];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Entrenamientos</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Entrenamientos</h1>
           <p className="text-sm text-muted-foreground">{rows.length} sesiones recientes.</p>
         </div>
         <Button asChild size="sm">
@@ -56,7 +56,7 @@ export default async function EntrenamientosPage() {
           </CardContent>
         </Card>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {rows.map((w) => {
             const date = new Date(w.started_at);
             const km = w.distance_m != null ? (w.distance_m / 1000).toFixed(1) : null;
@@ -64,7 +64,7 @@ export default async function EntrenamientosPage() {
               <li key={w.id}>
                 <Link
                   href={`/entrenamientos/${w.id}`}
-                  className="flex items-center justify-between rounded-md border p-3 hover:bg-accent"
+                  className="flex items-center justify-between rounded-md border border-border bg-card p-3 transition-colors hover:bg-accent"
                 >
                   <div className="flex flex-col">
                     <span className="font-medium">{w.title || sportLabel(w.sport)}</span>

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { HrZonesBar } from "@/components/charts/hr-zones-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,9 +49,9 @@ export function ProfileForm({ initial }: { initial: Values }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Nombre" className="col-span-2">
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Field label="Nombre" className="sm:col-span-2 lg:col-span-3">
           <Input value={v.display_name} onChange={onChange("display_name")} />
         </Field>
         <Field label="Nacimiento">
@@ -87,6 +88,11 @@ export function ProfileForm({ initial }: { initial: Values }) {
             onChange={onChange("hrv_range_max")}
           />
         </Field>
+      </section>
+
+      <div className="flex flex-col gap-2">
+        <Label>Zonas de FC</Label>
+        <HrZonesBar zones={zones} />
       </div>
 
       <Field label="Motivación">
@@ -98,25 +104,13 @@ export function ProfileForm({ initial }: { initial: Values }) {
         />
       </Field>
 
-      {zones.length > 0 ? (
-        <div className="rounded-md border p-3">
-          <div className="mb-2 text-sm font-medium">Zonas FC (calculadas por % FCmax)</div>
-          <ul className="grid grid-cols-5 gap-2 text-center text-xs">
-            {zones.map((z) => (
-              <li key={z.zone} className="rounded bg-muted p-2">
-                <div className="font-semibold">Z{z.zone}</div>
-                <div>{z.min}–{z.max}</div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
       {status?.kind === "ok" ? (
         <p className="text-sm text-muted-foreground">Guardado.</p>
       ) : null}
       {status?.kind === "err" ? (
-        <p role="alert" className="text-sm text-destructive">{status.message}</p>
+        <p role="alert" className="text-sm text-destructive">
+          {status.message}
+        </p>
       ) : null}
 
       <div>

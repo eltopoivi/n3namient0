@@ -17,6 +17,9 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -46,6 +49,19 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        zone: {
+          1: "hsl(var(--zone-1))",
+          2: "hsl(var(--zone-2))",
+          3: "hsl(var(--zone-3))",
+          4: "hsl(var(--zone-4))",
+          5: "hsl(var(--zone-5))",
+        },
+        metric: {
+          rhr: "hsl(var(--metric-rhr))",
+          hrv: "hsl(var(--metric-hrv))",
+          weight: "hsl(var(--metric-weight))",
+          sleep: "hsl(var(--metric-sleep))",
         },
       },
       borderRadius: {

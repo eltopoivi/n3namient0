@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
+import { HrZonesBar } from "@/components/charts/hr-zones-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { computeHrZonesFromMax } from "@/lib/domain/hr-zones";
 import { sportLabel } from "@/lib/domain/sports";
 import { mean } from "@/lib/domain/stats";
 import { formatDuration } from "@/lib/domain/workouts";
@@ -70,7 +73,7 @@ export default async function DashboardPage() {
         .limit(3),
       supabase
         .from("profiles")
-        .select("display_name,motivation_text")
+        .select("display_name,motivation_text,fc_max,hrv_range_min,hrv_range_max")
         .eq("user_id", user.id)
         .maybeSingle(),
     ]);
@@ -97,121 +100,172 @@ export default async function DashboardPage() {
 
   const events = eventsRes.data ?? [];
   const profile = profileRes.data;
+  const zones = profile?.fc_max ? computeHrZonesFromMax(Number(profile.fc_max)) : [];
+  const hrvRangeText =
+    profile?.hrv_range_min != null && profile?.hrv_range_max != null
+      ? `${profile.hrv_range_min}–${profile.hrv_range_max} ms`
+      : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-3xl font-semibold tracking-tight">
           Hola{profile?.display_name ? `, ${profile.display_name}` : ""}
         </h1>
         <p className="text-sm text-muted-foreground">Resumen de los últimos 7 días.</p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Entrenos (7d)</CardTitle>
-          <CardDescription>
-            {workouts.length} sesiones · {formatDuration(totalDuration)} totales
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {workouts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nada aún esta semana.</p>
-          ) : (
-            <ul className="flex flex-col gap-1 text-sm">
-              {[...workoutsBySport.entries()].map(([sport, agg]) => (
-                <li key={sport} className="flex items-center justify-between">
-                  <span>{sportLabel(sport)}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {agg.count} · {formatDuration(agg.duration)}
-                    {agg.distance > 0 ? ` · ${(agg.distance / 1000).toFixed(1)} km` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <Card className="md:col-span-2">
+          <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
+            <div>
+              <CardTitle>Entrenos (7d)</CardTitle>
+              <CardDescription>
+                {workouts.length} sesiones · {formatDuration(totalDuration)} totales
+              </CardDescription>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/entrenamientos">
+                Ver todos <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {workouts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nada aún esta semana.</p>
+            ) : (
+              <ul className="flex flex-col gap-1.5 text-sm">
+                {[...workoutsBySport.entries()].map(([sport, agg]) => (
+                  <li key={sport} className="flex items-center justify-between">
+                    <span>{sportLabel(sport)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {agg.count} · {formatDuration(agg.duration)}
+                      {agg.distance > 0 ? ` · ${(agg.distance / 1000).toFixed(1)} km` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recuperación</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-2 text-center text-xs">
-            <MetricMini
-              label="RHR hoy"
-              value={rhrToday ? `${rhrToday.bpm} bpm` : "–"}
-              sub={
-                rhrBaseline != null
-                  ? `base 30d: ${Math.round(rhrBaseline)}`
-                  : undefined
-              }
+        <Card>
+          <CardHeader>
+            <CardTitle>Recuperación</CardTitle>
+            <CardDescription>RHR, HRV, peso.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-3 gap-2">
+            <MetricCard
+              label="RHR"
+              value={rhrToday ? `${rhrToday.bpm}` : "–"}
+              unit={rhrToday ? "bpm" : ""}
+              sub={rhrBaseline != null ? `base 30d ${Math.round(rhrBaseline)}` : undefined}
+              accent="hsl(var(--metric-rhr))"
             />
-            <MetricMini
-              label="HRV hoy"
-              value={hrvToday ? `${hrvToday.value_ms} ms` : "–"}
-              sub={
-                hrvToday?.range_min != null && hrvToday?.range_max != null
-                  ? `rango ${hrvToday.range_min}–${hrvToday.range_max}`
-                  : undefined
-              }
+            <MetricCard
+              label="HRV"
+              value={hrvToday ? `${hrvToday.value_ms}` : "–"}
+              unit={hrvToday ? "ms" : ""}
+              sub={hrvRangeText ?? undefined}
+              accent="hsl(var(--metric-hrv))"
             />
-            <MetricMini
+            <MetricCard
               label="Peso"
-              value={weightNow ? `${weightNow.kg} kg` : "–"}
+              value={weightNow ? `${weightNow.kg}` : "–"}
+              unit={weightNow ? "kg" : ""}
               sub={
                 weightDelta != null
                   ? `${weightDelta > 0 ? "+" : ""}${weightDelta.toFixed(1)} kg`
                   : undefined
               }
+              accent="hsl(var(--metric-weight))"
             />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Próximos eventos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sin eventos próximos.</p>
-          ) : (
-            <ul className="flex flex-col gap-1 text-sm">
-              {events.map((e) => (
-                <li key={e.id} className="flex items-center justify-between">
-                  <span className="font-medium">{e.title}</span>
-                  <span className="text-xs text-muted-foreground">{e.event_date}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-3">
-            <Button asChild size="sm" variant="outline">
-              <Link href="/eventos">Gestionar eventos</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {profile?.motivation_text ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Motivación</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">{profile.motivation_text}</CardContent>
+          </CardContent>
         </Card>
-      ) : null}
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Zonas de FC</CardTitle>
+            <CardDescription>
+              {zones.length > 0 ? "Calculadas a partir de tu FC máxima." : "Configura tu FC máxima en Perfil."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <HrZonesBar zones={zones} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
+            <div>
+              <CardTitle>Próximos eventos</CardTitle>
+              <CardDescription>{events.length} citas</CardDescription>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/eventos">
+                Gestionar <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {events.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sin eventos próximos.</p>
+            ) : (
+              <ul className="flex flex-col gap-1 text-sm">
+                {events.map((e) => (
+                  <li key={e.id} className="flex items-center justify-between">
+                    <span className="font-medium">{e.title}</span>
+                    <span className="text-xs text-muted-foreground">{e.event_date}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        {profile?.motivation_text ? (
+          <Card className="md:col-span-2 xl:col-span-3">
+            <CardHeader>
+              <CardTitle>Motivación</CardTitle>
+            </CardHeader>
+            <CardContent className="whitespace-pre-wrap text-sm">{profile.motivation_text}</CardContent>
+          </Card>
+        ) : null}
+      </section>
     </div>
   );
 }
 
-function MetricMini({ label, value, sub }: { label: string; value: string; sub?: string | undefined }) {
+function MetricCard({
+  label,
+  value,
+  unit,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  sub?: string | undefined;
+  accent: string;
+}) {
   return (
-    <div className="rounded bg-muted p-3">
+    <div
+      className="relative overflow-hidden rounded-md border border-border bg-background p-3"
+      style={{
+        background: `linear-gradient(180deg, color-mix(in srgb, ${accent} 8%, hsl(var(--card))) 0%, hsl(var(--card)) 100%)`,
+      }}
+    >
+      <span
+        aria-hidden
+        className="absolute left-0 top-0 h-full w-0.5"
+        style={{ background: accent }}
+      />
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="text-sm font-medium">{value}</div>
+      <div className="text-lg font-semibold leading-tight">
+        {value}
+        {unit ? <span className="ml-1 text-xs text-muted-foreground">{unit}</span> : null}
+      </div>
       {sub ? <div className="text-[10px] text-muted-foreground">{sub}</div> : null}
     </div>
   );
