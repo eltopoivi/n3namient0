@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/nav/bottom-nav";
+import { MicFab } from "@/components/nav/mic-fab";
 import { SideNav } from "@/components/nav/side-nav";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,6 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </aside>
         <main className="flex-1 px-4 py-5 pb-24 md:px-8 md:py-8 md:pb-10">{children}</main>
       </div>
+      <MicFab />
       <BottomNav />
     </div>
   );
