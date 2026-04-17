@@ -8,10 +8,12 @@ export function SimpleLineChart({
   data,
   unit,
   height = 180,
+  formatValue,
 }: {
   data: LinePoint[];
-  unit?: string;
-  height?: number;
+  unit?: string | undefined;
+  height?: number | undefined;
+  formatValue?: ((n: number) => string) | undefined;
 }) {
   if (data.length === 0) {
     return (
@@ -20,19 +22,36 @@ export function SimpleLineChart({
       </div>
     );
   }
+
+  const tickFormatter = formatValue
+    ? (v: unknown) => (typeof v === "number" ? formatValue(v) : String(v))
+    : (v: unknown) => String(v);
+
+  const tooltipFormatter = (v: number | string) => {
+    const num = typeof v === "number" ? v : Number(v);
+    if (formatValue && Number.isFinite(num)) return [formatValue(num), ""] as [string, string];
+    return [`${v}${unit ? ` ${unit}` : ""}`, ""] as [string, string];
+  };
+
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-        <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={["auto", "auto"]} />
+        <YAxis
+          tick={{ fontSize: 10 }}
+          stroke="hsl(var(--muted-foreground))"
+          domain={["auto", "auto"]}
+          width={52}
+          tickFormatter={tickFormatter}
+        />
         <Tooltip
           contentStyle={{
             background: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
             fontSize: 12,
           }}
-          formatter={(v: number | string) => [`${v}${unit ? ` ${unit}` : ""}`, ""]}
+          formatter={tooltipFormatter}
         />
         <Line
           type="monotone"

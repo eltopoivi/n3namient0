@@ -4,10 +4,9 @@ import { useState, useTransition } from "react";
 
 import { SimpleLineChart, type LinePoint } from "@/components/charts/line-chart";
 import { Button } from "@/components/ui/button";
-import { DurationInput, toTotalMinutes } from "@/components/ui/duration-input";
+import { DurationInput, formatMinutesHuman, toTotalMinutes } from "@/components/ui/duration-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StepperInput } from "@/components/ui/stepper-input";
 import { max, mean, min } from "@/lib/domain/stats";
 
 import {
@@ -24,7 +23,6 @@ export type HealthRow = {
   id: string;
   date: string;
   value: number;
-  secondary?: number | null;
 };
 
 const META: Record<
@@ -43,11 +41,15 @@ function todayIso(): string {
   return local.toISOString().slice(0, 10);
 }
 
+function roundStr(n: number): string {
+  return (Math.round(n * 10) / 10).toString();
+}
+
 export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
   const [date, setDate] = useState(todayIso());
 
-  const [sleepH, setSleepH] = useState("8");
-  const [sleepM, setSleepM] = useState("0");
+  const [sleepH, setSleepH] = useState("");
+  const [sleepM, setSleepM] = useState("");
   const [deep, setDeep] = useState("");
   const [rem, setRem] = useState("");
   const [light, setLight] = useState("");
@@ -68,6 +70,9 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
   const avg = mean(values);
   const mi = min(values);
   const ma = max(values);
+
+  const formatValue =
+    kind === "sleep" ? formatMinutesHuman : (n: number) => `${roundStr(n)} ${META[kind].unit}`;
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -107,6 +112,8 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
         setDeep("");
         setRem("");
         setLight("");
+        setSleepH("");
+        setSleepM("");
       }
     });
   }
@@ -120,11 +127,11 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-md border p-3">
-        <SimpleLineChart data={chartData} unit={META[kind].unit} />
+        <SimpleLineChart data={chartData} unit={META[kind].unit} formatValue={formatValue} />
         <div className="mt-2 grid grid-cols-3 gap-2 text-center text-xs">
-          <StatMini label="Media" value={avg != null ? round(avg) : "–"} unit={META[kind].unit} />
-          <StatMini label="Mín" value={mi != null ? round(mi) : "–"} unit={META[kind].unit} />
-          <StatMini label="Máx" value={ma != null ? round(ma) : "–"} unit={META[kind].unit} />
+          <StatMini label="Media" value={avg != null ? formatValue(avg) : "–"} />
+          <StatMini label="Mín" value={mi != null ? formatValue(mi) : "–"} />
+          <StatMini label="Máx" value={ma != null ? formatValue(ma) : "–"} />
         </div>
       </div>
 
@@ -143,20 +150,18 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
               setMinutes={setSleepM}
             />
             <div className="grid grid-cols-3 gap-2">
-              <StepperNumber label="Profundo %" value={deep} setValue={setDeep} min={0} max={100} step={5} />
-              <StepperNumber label="REM %" value={rem} setValue={setRem} min={0} max={100} step={5} />
-              <StepperNumber label="Ligero %" value={light} setValue={setLight} min={0} max={100} step={5} />
+              <PlainNumber label="Profundo %" value={deep} setValue={setDeep} />
+              <PlainNumber label="REM %" value={rem} setValue={setRem} />
+              <PlainNumber label="Ligero %" value={light} setValue={setLight} />
             </div>
           </>
         ) : null}
 
-        {kind === "rhr" ? (
-          <StepperNumber label="BPM" value={primary} setValue={setPrimary} min={25} max={220} />
-        ) : null}
+        {kind === "rhr" ? <PlainNumber label="BPM" value={primary} setValue={setPrimary} required /> : null}
 
         {kind === "hrv" ? (
           <>
-            <StepperNumber label="HRV (ms)" value={primary} setValue={setPrimary} min={0} max={300} />
+            <PlainNumber label="HRV (ms)" value={primary} setValue={setPrimary} required />
             <div className="grid grid-cols-2 gap-2">
               <PlainNumber label="Rango mín" value={secondary} setValue={setSecondary} />
               <PlainNumber label="Rango máx" value={tertiary} setValue={setTertiary} />
@@ -191,8 +196,7 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
                 className="flex items-center justify-between rounded-md border p-2 text-sm"
               >
                 <span>
-                  <span className="font-medium">{r.date}</span> —{" "}
-                  {kind === "sleep" ? formatMinutes(r.value) : `${r.value} ${META[kind].unit}`}
+                  <span className="font-medium">{r.date}</span> — {formatValue(r.value)}
                 </span>
                 <Button
                   type="button"
@@ -212,26 +216,11 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
   );
 }
 
-function formatMinutes(total: number): string {
-  const h = Math.floor(total / 60);
-  const m = Math.round(total % 60);
-  if (h > 0 && m > 0) return `${h}h ${m}m`;
-  if (h > 0) return `${h}h`;
-  return `${m}m`;
-}
-
-function round(n: number): string {
-  return Math.round(n * 10) / 10 + "";
-}
-
-function StatMini({ label, value, unit }: { label: string; value: string; unit: string }) {
+function StatMini({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded bg-muted p-2">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="text-sm font-medium">
-        {value}
-        {value !== "–" ? ` ${unit}` : ""}
-      </div>
+      <div className="text-sm font-medium">{value}</div>
     </div>
   );
 }
@@ -257,29 +246,6 @@ function PlainNumber({
         onChange={(e) => setValue(e.target.value)}
         required={required}
       />
-    </div>
-  );
-}
-
-function StepperNumber({
-  label,
-  value,
-  setValue,
-  min: minValue,
-  max: maxValue,
-  step,
-}: {
-  label: string;
-  value: string;
-  setValue: (v: string) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <Label>{label}</Label>
-      <StepperInput value={value} setValue={setValue} min={minValue} max={maxValue} step={step} />
     </div>
   );
 }
