@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { emptyWorkoutValues, WorkoutForm } from "../workout-form";
+import { emptyWorkoutValues } from "../empty-values";
+import { WorkoutForm } from "../workout-form";
 
 export const metadata = { title: "Nuevo entreno · N300" };
 

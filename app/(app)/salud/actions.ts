@@ -13,24 +13,31 @@ import { createClient } from "@/lib/supabase/server";
 
 type Table = "sleeps" | "rhr_readings" | "hrv_readings" | "weights";
 
+function toMessage(cause: unknown): string {
+  return cause instanceof Error ? cause.message : "Error inesperado";
+}
+
 async function upsert(
   table: Table,
   payload: Record<string, unknown>,
   onConflict: string,
 ): Promise<ActionResult<null>> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return err("No autenticado");
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return err("No autenticado");
 
-  const { error } = await supabase
-    .from(table)
-    .upsert({ user_id: user.id, ...payload }, { onConflict });
-  if (error) return err(error.message);
-  revalidatePath("/salud");
-  revalidatePath("/");
-  return ok(null);
+    const { error } = await supabase.from(table).upsert({ user_id: user.id, ...payload }, { onConflict });
+    if (error) return err(error.message);
+    revalidatePath("/salud");
+    revalidatePath("/");
+    return ok(null);
+  } catch (cause) {
+    console.error(`upsert ${table} failed`, cause);
+    return err(toMessage(cause));
+  }
 }
 
 export async function upsertSleepAction(input: unknown): Promise<ActionResult<null>> {
@@ -57,15 +64,17 @@ export async function upsertWeightAction(input: unknown): Promise<ActionResult<n
   return upsert("weights", parsed.data, "user_id,date");
 }
 
-export async function deleteHealthRowAction(
-  table: Table,
-  id: string,
-): Promise<ActionResult<null>> {
+export async function deleteHealthRowAction(table: Table, id: string): Promise<ActionResult<null>> {
   if (!id) return err("Id requerido");
-  const supabase = createClient();
-  const { error } = await supabase.from(table).delete().eq("id", id);
-  if (error) return err(error.message);
-  revalidatePath("/salud");
-  revalidatePath("/");
-  return ok(null);
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.from(table).delete().eq("id", id);
+    if (error) return err(error.message);
+    revalidatePath("/salud");
+    revalidatePath("/");
+    return ok(null);
+  } catch (cause) {
+    console.error(`delete ${table} failed`, cause);
+    return err(toMessage(cause));
+  }
 }

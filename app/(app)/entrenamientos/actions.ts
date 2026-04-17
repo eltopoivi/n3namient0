@@ -33,26 +33,35 @@ function buildPayload(input: ReturnType<typeof workoutWriteSchema.parse>) {
   };
 }
 
+function toMessage(cause: unknown): string {
+  return cause instanceof Error ? cause.message : "Error inesperado";
+}
+
 export async function createWorkoutAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = workoutWriteSchema.safeParse(input);
   if (!parsed.success) return err("Datos inválidos", parsed.error.flatten().fieldErrors);
 
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return err("No autenticado");
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return err("No autenticado");
 
-  const { data, error } = await supabase
-    .from("workouts")
-    .insert({ user_id: user.id, source: "manual", ...buildPayload(parsed.data) })
-    .select("id")
-    .single();
+    const { data, error } = await supabase
+      .from("workouts")
+      .insert({ user_id: user.id, source: "manual", ...buildPayload(parsed.data) })
+      .select("id")
+      .single();
 
-  if (error || !data) return err(error?.message ?? "No se pudo crear");
-  revalidatePath("/entrenamientos");
-  revalidatePath("/");
-  return ok({ id: data.id });
+    if (error || !data) return err(error?.message ?? "No se pudo crear");
+    revalidatePath("/entrenamientos");
+    revalidatePath("/");
+    return ok({ id: data.id });
+  } catch (cause) {
+    console.error("createWorkoutAction failed", cause);
+    return err(toMessage(cause));
+  }
 }
 
 export async function updateWorkoutAction(id: string, input: unknown): Promise<ActionResult<null>> {
@@ -60,25 +69,31 @@ export async function updateWorkoutAction(id: string, input: unknown): Promise<A
   const parsed = workoutWriteSchema.safeParse(input);
   if (!parsed.success) return err("Datos inválidos", parsed.error.flatten().fieldErrors);
 
-  const supabase = createClient();
-  const { error } = await supabase
-    .from("workouts")
-    .update(buildPayload(parsed.data))
-    .eq("id", id);
-  if (error) return err(error.message);
-
-  revalidatePath("/entrenamientos");
-  revalidatePath(`/entrenamientos/${id}`);
-  revalidatePath("/");
-  return ok(null);
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.from("workouts").update(buildPayload(parsed.data)).eq("id", id);
+    if (error) return err(error.message);
+    revalidatePath("/entrenamientos");
+    revalidatePath(`/entrenamientos/${id}`);
+    revalidatePath("/");
+    return ok(null);
+  } catch (cause) {
+    console.error("updateWorkoutAction failed", cause);
+    return err(toMessage(cause));
+  }
 }
 
 export async function deleteWorkoutAction(id: string): Promise<ActionResult<null>> {
   if (!id) return err("Id requerido");
-  const supabase = createClient();
-  const { error } = await supabase.from("workouts").delete().eq("id", id);
-  if (error) return err(error.message);
-  revalidatePath("/entrenamientos");
-  revalidatePath("/");
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.from("workouts").delete().eq("id", id);
+    if (error) return err(error.message);
+    revalidatePath("/entrenamientos");
+    revalidatePath("/");
+  } catch (cause) {
+    console.error("deleteWorkoutAction failed", cause);
+    return err(toMessage(cause));
+  }
   redirect("/entrenamientos");
 }
