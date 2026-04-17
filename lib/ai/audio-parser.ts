@@ -23,8 +23,12 @@ Eres un nutricionista. Analiza este audio donde el usuario describe lo que ha co
 1. Transcribe literalmente en raw_transcript.
 2. Identifica cada alimento con su cantidad (en gramos, estima si no se dice).
 3. Calcula macros por alimento y totales usando valores de referencia estándar (USDA / BEDCA).
-4. Clasifica meal_type según contexto (hora, tipo de alimentos). Si dudas, usa "other".
-5. Si el audio es inaudible o no trata de comida, lanza error.
+4. Estima micronutrientes por alimento cuando sean significativos: fibra (g), azúcar (g),
+   grasa saturada (g), sodio (mg), potasio (mg), calcio (mg), magnesio (mg), hierro (mg),
+   zinc (mg), vitamina C (mg), vitamina D (µg), vitamina B12 (µg), omega-3 (g). Si un
+   alimento no aporta cantidades relevantes de un micronutriente concreto, deja ese campo null.
+5. Clasifica meal_type según contexto (hora, tipo de alimentos). Si dudas, usa "other".
+6. Si el audio es inaudible o no trata de comida, lanza error.
 Responde SOLO con el JSON del schema.
 `.trim();
 

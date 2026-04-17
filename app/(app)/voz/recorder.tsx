@@ -33,7 +33,7 @@ type TrainingRecord = {
 };
 
 type UploadResult =
-  | { kind: "nutrition"; record: NutritionRecord }
+  | { kind: "nutrition"; record: NutritionRecord; micros: Record<string, number> | null }
   | { kind: "training"; record: TrainingRecord };
 
 type Status =
@@ -180,10 +180,15 @@ export function VoiceRecorder() {
       const ext = extensionFor(audioBlob.type);
       form.set("file", audioBlob, `voz.${ext}`);
       form.set("intent", intent);
+      const now = new Date();
+      const localShift = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+      form.set("localDate", localShift.toISOString().slice(0, 10));
+      form.set("localDatetime", now.toISOString());
       const response = await fetch("/api/voice-intake", { method: "POST", body: form });
       const body = (await response.json().catch(() => ({}))) as {
         ok?: boolean;
         record?: NutritionRecord | TrainingRecord;
+        micros?: Record<string, number> | null;
         error?: string;
       };
       if (!response.ok || !body.ok || !body.record) {
@@ -195,7 +200,11 @@ export function VoiceRecorder() {
         kind: "done",
         result:
           kind === "nutrition"
-            ? { kind: "nutrition", record: body.record as NutritionRecord }
+            ? {
+                kind: "nutrition",
+                record: body.record as NutritionRecord,
+                micros: body.micros ?? null,
+              }
             : { kind: "training", record: body.record as TrainingRecord },
       });
       if (audioUrl) URL.revokeObjectURL(audioUrl);
@@ -359,7 +368,9 @@ function ResultCard({ result, onAgain }: { result: UploadResult; onAgain: () => 
       <Card className="border-[hsl(var(--metric-hrv))]/30">
         <CardHeader>
           <CardTitle>Comida registrada</CardTitle>
-          <CardDescription>{r.meal_type}</CardDescription>
+          <CardDescription>
+            Guardada en nutrition_log y en Dieta ({r.meal_type}) con fecha de hoy.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-sm">
           <div className="grid grid-cols-4 gap-2 text-center">
@@ -380,6 +391,7 @@ function ResultCard({ result, onAgain }: { result: UploadResult; onAgain: () => 
               ))}
             </ul>
           ) : null}
+          <MicrosBlock micros={result.micros} />
           <TranscriptBlock text={r.raw_transcript} />
           <div>
             <Button type="button" variant="outline" size="sm" onClick={onAgain}>
@@ -397,7 +409,10 @@ function ResultCard({ result, onAgain }: { result: UploadResult; onAgain: () => 
     <Card className="border-[hsl(var(--metric-rhr))]/30">
       <CardHeader>
         <CardTitle>Entreno registrado</CardTitle>
-        <CardDescription>{r.discipline}</CardDescription>
+        <CardDescription>
+          {r.discipline}
+          {r.duration_min != null ? " · también guardado en Entrenamientos" : ""}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 text-sm">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -434,6 +449,47 @@ function TranscriptBlock({ text }: { text: string }) {
     <div className="rounded border border-border bg-background p-3 text-xs">
       <div className="mb-1 uppercase tracking-wide text-muted-foreground">Transcripción</div>
       <div className="whitespace-pre-wrap">{text}</div>
+    </div>
+  );
+}
+
+const MICRO_LABELS: Record<string, { label: string; unit: string }> = {
+  fiber_g: { label: "Fibra", unit: "g" },
+  sugar_g: { label: "Azúcar", unit: "g" },
+  saturated_fat_g: { label: "Grasa sat.", unit: "g" },
+  sodium_mg: { label: "Sodio", unit: "mg" },
+  potassium_mg: { label: "Potasio", unit: "mg" },
+  calcium_mg: { label: "Calcio", unit: "mg" },
+  magnesium_mg: { label: "Magnesio", unit: "mg" },
+  iron_mg: { label: "Hierro", unit: "mg" },
+  zinc_mg: { label: "Zinc", unit: "mg" },
+  vitamin_c_mg: { label: "Vit. C", unit: "mg" },
+  vitamin_d_ug: { label: "Vit. D", unit: "µg" },
+  vitamin_b12_ug: { label: "Vit. B12", unit: "µg" },
+  omega3_g: { label: "Omega-3", unit: "g" },
+};
+
+function MicrosBlock({ micros }: { micros: Record<string, number> | null }) {
+  if (!micros || Object.keys(micros).length === 0) return null;
+  const entries = Object.entries(micros).filter(([key]) => key in MICRO_LABELS);
+  if (entries.length === 0) return null;
+  return (
+    <div className="rounded border border-border bg-background p-3">
+      <div className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Micronutrientes</div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs sm:grid-cols-3">
+        {entries.map(([key, value]) => {
+          const meta = MICRO_LABELS[key];
+          if (!meta) return null;
+          return (
+            <div key={key} className="flex justify-between">
+              <span className="text-muted-foreground">{meta.label}</span>
+              <span className="font-medium">
+                {Math.round(value * 100) / 100} {meta.unit}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

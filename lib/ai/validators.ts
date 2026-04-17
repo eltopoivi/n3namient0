@@ -1,5 +1,25 @@
 import { z } from "zod";
 
+export const MICRO_KEYS = [
+  "fiber_g",
+  "sugar_g",
+  "saturated_fat_g",
+  "sodium_mg",
+  "potassium_mg",
+  "calcium_mg",
+  "magnesium_mg",
+  "iron_mg",
+  "zinc_mg",
+  "vitamin_c_mg",
+  "vitamin_d_ug",
+  "vitamin_b12_ug",
+  "omega3_g",
+] as const;
+
+export type MicroKey = (typeof MICRO_KEYS)[number];
+
+const microField = z.number().nullable().optional();
+
 export const NutritionItemZ = z.object({
   name: z.string().min(1),
   amount_g: z.number().positive(),
@@ -7,9 +27,19 @@ export const NutritionItemZ = z.object({
   protein_g: z.number().nonnegative(),
   carbs_g: z.number().nonnegative(),
   fat_g: z.number().nonnegative(),
-  fiber_g: z.number().nullable().optional(),
-  sugar_g: z.number().nullable().optional(),
-  sodium_mg: z.number().nullable().optional(),
+  fiber_g: microField,
+  sugar_g: microField,
+  saturated_fat_g: microField,
+  sodium_mg: microField,
+  potassium_mg: microField,
+  calcium_mg: microField,
+  magnesium_mg: microField,
+  iron_mg: microField,
+  zinc_mg: microField,
+  vitamin_c_mg: microField,
+  vitamin_d_ug: microField,
+  vitamin_b12_ug: microField,
+  omega3_g: microField,
 });
 
 export const NutritionResultZ = z.object({
@@ -33,6 +63,7 @@ export const NutritionResultZ = z.object({
 });
 
 export type NutritionResult = z.infer<typeof NutritionResultZ>;
+export type NutritionItem = z.infer<typeof NutritionItemZ>;
 
 export const TrainingIntervalZ = z.object({
   type: z.string().min(1),
