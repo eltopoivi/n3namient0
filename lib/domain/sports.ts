@@ -1,15 +1,80 @@
-export const SPORTS = [
-  { value: "ciclismo_carretera", label: "Ciclismo carretera", distance: true, power: true },
-  { value: "ciclismo_mtb", label: "Ciclismo MTB", distance: true, power: true },
-  { value: "ciclismo_pista", label: "Ciclismo pista", distance: true, power: true },
-  { value: "carrera_ruta", label: "Carrera ruta", distance: true, power: false },
-  { value: "carrera_trail", label: "Carrera trail", distance: true, power: false },
-  { value: "carrera_pista", label: "Carrera pista", distance: true, power: false },
-  { value: "gym", label: "Gym", distance: false, power: false },
-  { value: "ejercicio", label: "Ejercicio", distance: false, power: false },
-  { value: "ski", label: "Ski", distance: true, power: false },
-  { value: "otro", label: "Otro", distance: true, power: false },
-] as const;
+export type SportCaps = {
+  distance: boolean;
+  elevation: boolean;
+  heartRate: boolean;
+  power: boolean;
+  pace: boolean;
+  calories: boolean;
+};
+
+export type SportDef = {
+  value: string;
+  label: string;
+  caps: SportCaps;
+};
+
+const ALL: SportCaps = {
+  distance: true,
+  elevation: true,
+  heartRate: true,
+  power: true,
+  pace: true,
+  calories: true,
+};
+
+export const SPORTS: ReadonlyArray<SportDef> = [
+  {
+    value: "ciclismo_carretera",
+    label: "Ciclismo carretera",
+    caps: { distance: true, elevation: true, heartRate: true, power: true, pace: false, calories: true },
+  },
+  {
+    value: "ciclismo_mtb",
+    label: "Ciclismo MTB",
+    caps: { distance: true, elevation: true, heartRate: true, power: true, pace: false, calories: true },
+  },
+  {
+    value: "ciclismo_pista",
+    label: "Ciclismo pista",
+    caps: { distance: true, elevation: false, heartRate: true, power: true, pace: false, calories: true },
+  },
+  {
+    value: "rodillo",
+    label: "Rodillo (bici indoor)",
+    caps: { distance: true, elevation: false, heartRate: true, power: true, pace: false, calories: true },
+  },
+  {
+    value: "carrera_ruta",
+    label: "Carrera ruta",
+    caps: { distance: true, elevation: true, heartRate: true, power: false, pace: true, calories: true },
+  },
+  {
+    value: "carrera_trail",
+    label: "Carrera trail",
+    caps: { distance: true, elevation: true, heartRate: true, power: false, pace: true, calories: true },
+  },
+  {
+    value: "carrera_pista",
+    label: "Carrera pista",
+    caps: { distance: true, elevation: false, heartRate: true, power: false, pace: true, calories: true },
+  },
+  {
+    value: "gym",
+    label: "Gym",
+    caps: { distance: false, elevation: false, heartRate: true, power: false, pace: false, calories: true },
+  },
+  {
+    value: "ejercicio",
+    label: "Ejercicio",
+    caps: { distance: false, elevation: false, heartRate: true, power: false, pace: false, calories: true },
+  },
+  {
+    value: "ski",
+    label: "Ski",
+    caps: { distance: true, elevation: true, heartRate: true, power: false, pace: false, calories: true },
+  },
+  { value: "otro", label: "Otro", caps: ALL },
+];
 
 export type Sport = (typeof SPORTS)[number]["value"];
 
@@ -17,12 +82,8 @@ export function sportLabel(value: string): string {
   return SPORTS.find((s) => s.value === value)?.label ?? value;
 }
 
-export function sportSupportsDistance(value: string): boolean {
-  return SPORTS.find((s) => s.value === value)?.distance ?? false;
-}
-
-export function sportSupportsPower(value: string): boolean {
-  return SPORTS.find((s) => s.value === value)?.power ?? false;
+export function sportCaps(value: string): SportCaps {
+  return SPORTS.find((s) => s.value === value)?.caps ?? ALL;
 }
 
 export const MEAL_SLOTS = [

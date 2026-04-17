@@ -22,6 +22,7 @@ const SPORT_VALUES = [
   "ciclismo_carretera",
   "ciclismo_mtb",
   "ciclismo_pista",
+  "rodillo",
   "carrera_ruta",
   "carrera_trail",
   "carrera_pista",

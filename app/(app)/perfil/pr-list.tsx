@@ -23,6 +23,7 @@ const SPORT_OPTIONS = [
   { value: "", label: "—" },
   { value: "ciclismo_carretera", label: "Ciclismo carretera" },
   { value: "ciclismo_mtb", label: "Ciclismo MTB" },
+  { value: "rodillo", label: "Rodillo" },
   { value: "carrera_ruta", label: "Carrera ruta" },
   { value: "carrera_trail", label: "Carrera trail" },
   { value: "gym", label: "Gym" },

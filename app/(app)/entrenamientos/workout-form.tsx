@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { parseDurationString } from "@/lib/domain/workouts";
-import { SPORTS, sportSupportsDistance, sportSupportsPower } from "@/lib/domain/sports";
+import { SPORTS, sportCaps } from "@/lib/domain/sports";
 
 import { createWorkoutAction, updateWorkoutAction } from "./actions";
 
@@ -42,8 +42,7 @@ export function WorkoutForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const supportsDistance = sportSupportsDistance(v.sport);
-  const supportsPower = sportSupportsPower(v.sport);
+  const caps = sportCaps(v.sport);
 
   function onChange<K extends keyof WorkoutFormValues>(key: K) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -67,12 +66,12 @@ export function WorkoutForm({
       title: v.title,
       notes: v.notes,
       duration_s,
-      distance_km: v.distance_km,
-      avg_hr: v.avg_hr,
-      avg_power_w: v.avg_power_w,
-      elev_gain_m: v.elev_gain_m,
-      elev_loss_m: v.elev_loss_m,
-      calories: v.calories,
+      distance_km: caps.distance ? v.distance_km : null,
+      avg_hr: caps.heartRate ? v.avg_hr : null,
+      avg_power_w: caps.power ? v.avg_power_w : null,
+      elev_gain_m: caps.elevation ? v.elev_gain_m : null,
+      elev_loss_m: caps.elevation ? v.elev_loss_m : null,
+      calories: caps.calories ? v.calories : null,
     };
 
     startTransition(async () => {
@@ -93,12 +92,12 @@ export function WorkoutForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <section className="grid grid-cols-2 gap-3">
-        <Field label="Fecha y hora" className="col-span-2">
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field label="Fecha y hora" className="sm:col-span-2">
           <Input type="datetime-local" value={v.started_at} onChange={onChange("started_at")} required />
         </Field>
-        <Field label="Deporte" className="col-span-2">
+        <Field label="Deporte">
           <Select value={v.sport} onChange={onChange("sport")}>
             {SPORTS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -107,23 +106,28 @@ export function WorkoutForm({
             ))}
           </Select>
         </Field>
-        <Field label="Subtipo" className="col-span-2">
+        <Field label="Subtipo">
           <Input
             value={v.sport_subtype}
             onChange={onChange("sport_subtype")}
-            placeholder="tempo, intervalos, Z2…"
+            placeholder="tempo, series, Z2…"
           />
         </Field>
-        <Field label="Título" className="col-span-2">
+        <Field label="Título" className="sm:col-span-2">
           <Input value={v.title} onChange={onChange("title")} placeholder="Rodaje largo" />
         </Field>
       </section>
 
-      <section className="grid grid-cols-2 gap-3">
-        <Field label="Duración (hh:mm:ss o mm:ss)" className="col-span-2">
-          <Input value={v.duration_str} onChange={onChange("duration_str")} placeholder="1:30:00" required />
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field label="Duración (hh:mm:ss o mm:ss)" className="sm:col-span-2">
+          <Input
+            value={v.duration_str}
+            onChange={onChange("duration_str")}
+            placeholder="1:30:00"
+            required
+          />
         </Field>
-        {supportsDistance ? (
+        {caps.distance ? (
           <Field label="Distancia (km)">
             <Input
               type="number"
@@ -133,10 +137,12 @@ export function WorkoutForm({
             />
           </Field>
         ) : null}
-        <Field label="FC media (bpm)">
-          <Input type="number" inputMode="numeric" value={v.avg_hr} onChange={onChange("avg_hr")} />
-        </Field>
-        {supportsPower ? (
+        {caps.heartRate ? (
+          <Field label="FC media (bpm)">
+            <Input type="number" inputMode="numeric" value={v.avg_hr} onChange={onChange("avg_hr")} />
+          </Field>
+        ) : null}
+        {caps.power ? (
           <Field label="Potencia media (W)">
             <Input
               type="number"
@@ -146,7 +152,7 @@ export function WorkoutForm({
             />
           </Field>
         ) : null}
-        {supportsDistance ? (
+        {caps.elevation ? (
           <>
             <Field label="Desnivel + (m)">
               <Input
@@ -166,9 +172,11 @@ export function WorkoutForm({
             </Field>
           </>
         ) : null}
-        <Field label="Calorías">
-          <Input type="number" inputMode="numeric" value={v.calories} onChange={onChange("calories")} />
-        </Field>
+        {caps.calories ? (
+          <Field label="Calorías">
+            <Input type="number" inputMode="numeric" value={v.calories} onChange={onChange("calories")} />
+          </Field>
+        ) : null}
       </section>
 
       <Field label="Notas">
