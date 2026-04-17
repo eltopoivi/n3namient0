@@ -1,13 +1,5 @@
 import { z } from "zod";
 
-export const usernameSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .min(3, "Mínimo 3 caracteres")
-  .max(20, "Máximo 20 caracteres")
-  .regex(/^[a-z0-9_-]+$/, "Solo letras minúsculas, números, guión y guión bajo");
-
 export const emailSchema = z.string().trim().toLowerCase().email("Email no válido");
 
 export const passwordSchema = z
@@ -21,7 +13,6 @@ export const signInSchema = z.object({
 });
 
 export const signUpSchema = z.object({
-  username: usernameSchema,
   email: emailSchema,
   password: passwordSchema,
 });

@@ -18,7 +18,6 @@ type Status =
 
 export function SignupForm() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -27,7 +26,7 @@ export function SignupForm() {
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startTransition(async () => {
-      const res = await signUpAction({ username, email, password });
+      const res = await signUpAction({ email, password });
       if (!res.ok) {
         setStatus({ kind: "error", message: res.error });
         return;
@@ -50,16 +49,8 @@ export function SignupForm() {
             Te hemos enviado un enlace a <strong>{status.email}</strong>. Ábrelo para activar tu cuenta.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Cuando confirmes, te llevaremos a la pantalla de inicio de sesión.
-          </p>
-        </CardContent>
         <CardFooter>
-          <Link
-            href="/login"
-            className="text-sm font-medium underline-offset-4 hover:underline"
-          >
+          <Link href="/login" className="text-sm font-medium underline-offset-4 hover:underline">
             Ir a iniciar sesión
           </Link>
         </CardFooter>
@@ -75,22 +66,6 @@ export function SignupForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="flex flex-col gap-3" noValidate>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="username">Nombre de usuario</Label>
-            <Input
-              id="username"
-              name="username"
-              type="text"
-              autoComplete="username"
-              required
-              minLength={3}
-              maxLength={20}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="atleta01"
-              disabled={pending}
-            />
-          </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -125,10 +100,7 @@ export function SignupForm() {
               {status.message}
             </p>
           ) : null}
-          <Button
-            type="submit"
-            disabled={pending || username.length === 0 || email.length === 0 || password.length === 0}
-          >
+          <Button type="submit" disabled={pending || email.length === 0 || password.length === 0}>
             {pending ? "Creando…" : "Crear cuenta"}
           </Button>
         </form>

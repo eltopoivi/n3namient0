@@ -1,22 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { signInSchema, signUpSchema, usernameSchema } from "@/lib/schemas/auth";
-
-describe("usernameSchema", () => {
-  it("lowercases and trims", () => {
-    expect(usernameSchema.parse(" Atleta_01 ")).toBe("atleta_01");
-  });
-
-  it("rejects characters outside the allowed set", () => {
-    expect(usernameSchema.safeParse("atleta.01").success).toBe(false);
-  });
-
-  it("enforces min and max length", () => {
-    expect(usernameSchema.safeParse("ab").success).toBe(false);
-    expect(usernameSchema.safeParse("a".repeat(21)).success).toBe(false);
-    expect(usernameSchema.safeParse("abc").success).toBe(true);
-  });
-});
+import { signInSchema, signUpSchema } from "@/lib/schemas/auth";
 
 describe("signInSchema", () => {
   it("accepts a valid email and non-empty password", () => {
@@ -34,22 +18,19 @@ describe("signInSchema", () => {
 });
 
 describe("signUpSchema", () => {
-  it("accepts valid input and normalizes username + email", () => {
+  it("accepts valid input and normalizes email", () => {
     const parsed = signUpSchema.parse({
-      username: " Ivan_01 ",
       email: " Foo@Example.COM ",
       password: "supersecret",
     });
-    expect(parsed.username).toBe("ivan_01");
     expect(parsed.email).toBe("foo@example.com");
   });
 
   it("rejects short passwords", () => {
-    const result = signUpSchema.safeParse({
-      username: "ivan",
-      email: "a@b.com",
-      password: "short",
-    });
-    expect(result.success).toBe(false);
+    expect(signUpSchema.safeParse({ email: "a@b.com", password: "short" }).success).toBe(false);
+  });
+
+  it("rejects invalid emails", () => {
+    expect(signUpSchema.safeParse({ email: "nope", password: "supersecret" }).success).toBe(false);
   });
 });

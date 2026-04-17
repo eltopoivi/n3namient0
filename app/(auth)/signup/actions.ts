@@ -19,7 +19,7 @@ function hasSupabaseEnv(): boolean {
 function translate(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("user already registered")) {
-    return "Ya existe una cuenta con ese email. Inicia sesión o verifica tu correo.";
+    return "Ya existe una cuenta con ese email. Inicia sesión.";
   }
   if (m.includes("password")) return "Contraseña no válida.";
   return message;
@@ -34,7 +34,7 @@ export async function signUpAction(input: unknown): Promise<ActionResult<SignUpR
   }
 
   if (!hasSupabaseEnv()) {
-    return err("Configuración incompleta del servidor. Contacta al administrador.");
+    return err("Configuración incompleta del servidor.");
   }
 
   try {
@@ -43,7 +43,6 @@ export async function signUpAction(input: unknown): Promise<ActionResult<SignUpR
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        data: { username: parsed.data.username },
         emailRedirectTo: `${appUrl()}/auth/callback`,
       },
     });
