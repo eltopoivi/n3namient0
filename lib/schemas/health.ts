@@ -27,7 +27,8 @@ export const sleepWriteSchema = z.object({
   duration_min: z
     .union([z.string(), z.number()])
     .transform((v) => (typeof v === "number" ? v : Number(v)))
-    .refine((n) => Number.isFinite(n) && n > 0, "Duración > 0"),
+    .refine((n) => Number.isFinite(n) && n > 0, "Duración > 0")
+    .transform((n) => Math.round(n)),
   deep_pct: optionalNumber,
   rem_pct: optionalNumber,
   light_pct: optionalNumber,

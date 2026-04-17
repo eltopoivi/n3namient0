@@ -4,8 +4,10 @@ import { useState, useTransition } from "react";
 
 import { SimpleLineChart, type LinePoint } from "@/components/charts/line-chart";
 import { Button } from "@/components/ui/button";
+import { DurationInput, toTotalMinutes } from "@/components/ui/duration-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StepperInput } from "@/components/ui/stepper-input";
 import { max, mean, min } from "@/lib/domain/stats";
 
 import {
@@ -25,25 +27,37 @@ export type HealthRow = {
   secondary?: number | null;
 };
 
-const META: Record<Kind, { unit: string; label: string; table: "sleeps" | "rhr_readings" | "hrv_readings" | "weights" }> = {
+const META: Record<
+  Kind,
+  { unit: string; label: string; table: "sleeps" | "rhr_readings" | "hrv_readings" | "weights" }
+> = {
   sleep: { unit: "min", label: "Duración", table: "sleeps" },
   rhr: { unit: "bpm", label: "RHR", table: "rhr_readings" },
   hrv: { unit: "ms", label: "HRV", table: "hrv_readings" },
   weight: { unit: "kg", label: "Peso", table: "weights" },
 };
 
-export function HealthTab({
-  kind,
-  rows,
-}: {
-  kind: Kind;
-  rows: HealthRow[];
-}) {
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [v1, setV1] = useState("");
-  const [v2, setV2] = useState("");
-  const [v3, setV3] = useState("");
-  const [v4, setV4] = useState("");
+function todayIso(): string {
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
+}
+
+export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
+  const [date, setDate] = useState(todayIso());
+
+  // Sleep-specific state (hours + minutes split)
+  const [sleepH, setSleepH] = useState("8");
+  const [sleepM, setSleepM] = useState("0");
+  const [deep, setDeep] = useState("");
+  const [rem, setRem] = useState("");
+  const [light, setLight] = useState("");
+
+  // RHR / HRV / Weight shared single fields
+  const [primary, setPrimary] = useState("");
+  const [secondary, setSecondary] = useState("");
+  const [tertiary, setTertiary] = useState("");
+
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -63,26 +77,38 @@ export function HealthTab({
     startTransition(async () => {
       let res;
       if (kind === "sleep") {
+        const duration_min = toTotalMinutes(sleepH, sleepM);
+        if (duration_min <= 0) {
+          setError("Duración requerida.");
+          return;
+        }
         res = await upsertSleepAction({
           date,
-          duration_min: v1,
-          deep_pct: v2 || null,
-          rem_pct: v3 || null,
-          light_pct: v4 || null,
+          duration_min,
+          deep_pct: deep || null,
+          rem_pct: rem || null,
+          light_pct: light || null,
         });
       } else if (kind === "rhr") {
-        res = await upsertRhrAction({ date, bpm: v1 });
+        res = await upsertRhrAction({ date, bpm: primary });
       } else if (kind === "hrv") {
-        res = await upsertHrvAction({ date, value_ms: v1, range_min: v2 || null, range_max: v3 || null });
+        res = await upsertHrvAction({
+          date,
+          value_ms: primary,
+          range_min: secondary || null,
+          range_max: tertiary || null,
+        });
       } else {
-        res = await upsertWeightAction({ date, kg: v1, body_fat_pct: v2 || null });
+        res = await upsertWeightAction({ date, kg: primary, body_fat_pct: secondary || null });
       }
       if (!res.ok) setError(res.error);
       else {
-        setV1("");
-        setV2("");
-        setV3("");
-        setV4("");
+        setPrimary("");
+        setSecondary("");
+        setTertiary("");
+        setDeep("");
+        setRem("");
+        setLight("");
       }
     });
   }
@@ -104,35 +130,51 @@ export function HealthTab({
         </div>
       </div>
 
-      <form onSubmit={submit} className="grid grid-cols-2 gap-2 rounded-md border p-3">
-        <div className="col-span-2 flex flex-col gap-1">
+      <form onSubmit={submit} className="flex flex-col gap-3 rounded-md border p-3">
+        <div className="flex flex-col gap-1">
           <Label>Fecha</Label>
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
+
         {kind === "sleep" ? (
           <>
-            <LabelledInput label="Duración (min)" value={v1} setValue={setV1} required />
-            <LabelledInput label="Profundo %" value={v2} setValue={setV2} />
-            <LabelledInput label="REM %" value={v3} setValue={setV3} />
-            <LabelledInput label="Ligero %" value={v4} setValue={setV4} />
+            <DurationInput
+              hours={sleepH}
+              minutes={sleepM}
+              setHours={setSleepH}
+              setMinutes={setSleepM}
+            />
+            <div className="grid grid-cols-3 gap-2">
+              <StepperField label="Profundo %" value={deep} setValue={setDeep} min={0} max={100} step={5} />
+              <StepperField label="REM %" value={rem} setValue={setRem} min={0} max={100} step={5} />
+              <StepperField label="Ligero %" value={light} setValue={setLight} min={0} max={100} step={5} />
+            </div>
           </>
         ) : null}
-        {kind === "rhr" ? <LabelledInput label="BPM" value={v1} setValue={setV1} required /> : null}
+
+        {kind === "rhr" ? (
+          <StepperField label="BPM" value={primary} setValue={setPrimary} min={25} max={220} />
+        ) : null}
+
         {kind === "hrv" ? (
-          <>
-            <LabelledInput label="HRV (ms)" value={v1} setValue={setV1} required />
-            <LabelledInput label="Rango mín (ms)" value={v2} setValue={setV2} />
-            <LabelledInput label="Rango máx (ms)" value={v3} setValue={setV3} />
-          </>
+          <div className="grid grid-cols-1 gap-2">
+            <NumField label="HRV (ms)" value={primary} setValue={setPrimary} required />
+            <div className="grid grid-cols-2 gap-2">
+              <NumField label="Rango mín" value={secondary} setValue={setSecondary} />
+              <NumField label="Rango máx" value={tertiary} setValue={setTertiary} />
+            </div>
+          </div>
         ) : null}
+
         {kind === "weight" ? (
-          <>
-            <LabelledInput label="kg" value={v1} setValue={setV1} required />
-            <LabelledInput label="% grasa" value={v2} setValue={setV2} />
-          </>
+          <div className="grid grid-cols-2 gap-2">
+            <NumField label="kg" value={primary} setValue={setPrimary} required />
+            <NumField label="% grasa" value={secondary} setValue={setSecondary} />
+          </div>
         ) : null}
-        {error ? <p className="col-span-2 text-sm text-destructive">{error}</p> : null}
-        <div className="col-span-2">
+
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        <div>
           <Button type="submit" size="sm" disabled={pending}>
             {pending ? "Guardando…" : "Guardar"}
           </Button>
@@ -151,7 +193,8 @@ export function HealthTab({
                 className="flex items-center justify-between rounded-md border p-2 text-sm"
               >
                 <span>
-                  <span className="font-medium">{r.date}</span> — {r.value} {META[kind].unit}
+                  <span className="font-medium">{r.date}</span> —{" "}
+                  {kind === "sleep" ? formatMinutes(r.value) : `${r.value} ${META[kind].unit}`}
                 </span>
                 <Button
                   type="button"
@@ -171,6 +214,14 @@ export function HealthTab({
   );
 }
 
+function formatMinutes(total: number): string {
+  const h = Math.floor(total / 60);
+  const m = Math.round(total % 60);
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
+}
+
 function round(n: number): string {
   return Math.round(n * 10) / 10 + "";
 }
@@ -187,7 +238,7 @@ function StatMini({ label, value, unit }: { label: string; value: string; unit: 
   );
 }
 
-function LabelledInput({
+function NumField({
   label,
   value,
   setValue,
@@ -208,6 +259,29 @@ function LabelledInput({
         onChange={(e) => setValue(e.target.value)}
         required={required}
       />
+    </div>
+  );
+}
+
+function StepperField({
+  label,
+  value,
+  setValue,
+  min: minValue,
+  max: maxValue,
+  step,
+}: {
+  label: string;
+  value: string;
+  setValue: (v: string) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <Label>{label}</Label>
+      <StepperInput value={value} setValue={setValue} min={minValue} max={maxValue} step={step} />
     </div>
   );
 }
