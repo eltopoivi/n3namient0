@@ -7,6 +7,12 @@ export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request);
 
   const { pathname } = request.nextUrl;
+
+  // API routes do their own auth and must return JSON, not redirect.
+  if (pathname.startsWith("/api/")) {
+    return response;
+  }
+
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (!user && !isPublic) {

@@ -11,7 +11,7 @@
       "error",
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
     ],
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
     "tailwindcss/no-custom-classname": "off",
     "tailwindcss/classnames-order": "warn"
   },
