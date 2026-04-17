@@ -17,11 +17,26 @@ export function DurationInput({
   label?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       <Label>{label}</Label>
-      <div className="grid grid-cols-2 gap-2">
-        <StepperInput value={hours} setValue={setHours} min={0} max={24} suffix="h" />
-        <StepperInput value={minutes} setValue={setMinutes} min={0} max={59} step={5} suffix="min" />
+      <div className="flex gap-2">
+        <StepperInput
+          value={hours}
+          setValue={setHours}
+          min={0}
+          max={24}
+          suffix="h"
+          className="flex-1"
+        />
+        <StepperInput
+          value={minutes}
+          setValue={setMinutes}
+          min={0}
+          max={59}
+          step={5}
+          suffix="min"
+          className="flex-1"
+        />
       </div>
     </div>
   );

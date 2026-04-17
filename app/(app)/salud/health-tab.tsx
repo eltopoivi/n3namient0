@@ -46,14 +46,12 @@ function todayIso(): string {
 export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
   const [date, setDate] = useState(todayIso());
 
-  // Sleep-specific state (hours + minutes split)
   const [sleepH, setSleepH] = useState("8");
   const [sleepM, setSleepM] = useState("0");
   const [deep, setDeep] = useState("");
   const [rem, setRem] = useState("");
   const [light, setLight] = useState("");
 
-  // RHR / HRV / Weight shared single fields
   const [primary, setPrimary] = useState("");
   const [secondary, setSecondary] = useState("");
   const [tertiary, setTertiary] = useState("");
@@ -145,31 +143,31 @@ export function HealthTab({ kind, rows }: { kind: Kind; rows: HealthRow[] }) {
               setMinutes={setSleepM}
             />
             <div className="grid grid-cols-3 gap-2">
-              <StepperField label="Profundo %" value={deep} setValue={setDeep} min={0} max={100} step={5} />
-              <StepperField label="REM %" value={rem} setValue={setRem} min={0} max={100} step={5} />
-              <StepperField label="Ligero %" value={light} setValue={setLight} min={0} max={100} step={5} />
+              <StepperNumber label="Profundo %" value={deep} setValue={setDeep} min={0} max={100} step={5} />
+              <StepperNumber label="REM %" value={rem} setValue={setRem} min={0} max={100} step={5} />
+              <StepperNumber label="Ligero %" value={light} setValue={setLight} min={0} max={100} step={5} />
             </div>
           </>
         ) : null}
 
         {kind === "rhr" ? (
-          <StepperField label="BPM" value={primary} setValue={setPrimary} min={25} max={220} />
+          <StepperNumber label="BPM" value={primary} setValue={setPrimary} min={25} max={220} />
         ) : null}
 
         {kind === "hrv" ? (
-          <div className="grid grid-cols-1 gap-2">
-            <NumField label="HRV (ms)" value={primary} setValue={setPrimary} required />
+          <>
+            <StepperNumber label="HRV (ms)" value={primary} setValue={setPrimary} min={0} max={300} />
             <div className="grid grid-cols-2 gap-2">
-              <NumField label="Rango mín" value={secondary} setValue={setSecondary} />
-              <NumField label="Rango máx" value={tertiary} setValue={setTertiary} />
+              <PlainNumber label="Rango mín" value={secondary} setValue={setSecondary} />
+              <PlainNumber label="Rango máx" value={tertiary} setValue={setTertiary} />
             </div>
-          </div>
+          </>
         ) : null}
 
         {kind === "weight" ? (
           <div className="grid grid-cols-2 gap-2">
-            <NumField label="kg" value={primary} setValue={setPrimary} required />
-            <NumField label="% grasa" value={secondary} setValue={setSecondary} />
+            <PlainNumber label="kg" value={primary} setValue={setPrimary} required />
+            <PlainNumber label="% grasa" value={secondary} setValue={setSecondary} />
           </div>
         ) : null}
 
@@ -238,7 +236,7 @@ function StatMini({ label, value, unit }: { label: string; value: string; unit: 
   );
 }
 
-function NumField({
+function PlainNumber({
   label,
   value,
   setValue,
@@ -263,7 +261,7 @@ function NumField({
   );
 }
 
-function StepperField({
+function StepperNumber({
   label,
   value,
   setValue,
