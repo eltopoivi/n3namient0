@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="hsl(42 42% 92%)"></rect>
+  <rect x="32" y="32" width="448" height="448" rx="56" fill="hsl(44 52% 95%)" stroke="hsl(38 20% 72%)" stroke-width="4"></rect>
+  <text x="256" y="298" text-anchor="middle" font-family="Inter, ui-sans-serif, sans-serif" font-weight="600" font-size="180" letter-spacing="-8" fill="hsl(28 18% 18%)">N300</text>
+  <circle cx="394" cy="212" r="10" fill="hsl(0 62% 50%)"></circle>
+</svg>

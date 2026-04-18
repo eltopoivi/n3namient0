@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, Apple, CalendarDays, Home, Mic, Salad, User } from "lucide-react";
 
+import { Wordmark } from "@/components/brand/wordmark";
 import { cn } from "@/lib/utils/cn";
 
 const ITEMS = [
@@ -20,10 +21,7 @@ export function SideNav() {
   const pathname = usePathname();
   return (
     <nav className="flex h-full flex-col gap-6 p-6">
-      <div>
-        <div className="text-lg font-semibold tracking-tight">N300</div>
-        <div className="text-xs text-muted-foreground">libreta de atleta</div>
-      </div>
+      <Wordmark tagline className="text-lg" />
       <ul className="flex flex-col gap-1">
         {ITEMS.map((item) => {
           const Icon = item.icon;

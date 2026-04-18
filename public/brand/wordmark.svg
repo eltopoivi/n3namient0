@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+  <text x="0" y="58" font-family="Inter, ui-sans-serif, sans-serif" font-weight="600" font-size="64" letter-spacing="-2.5" fill="hsl(28 18% 18%)">N300</text>
+  <circle cx="188" cy="22" r="5" fill="hsl(0 62% 50%)"></circle>
+  <text x="0" y="76" font-family="Inter, ui-sans-serif, sans-serif" font-weight="400" font-size="12" letter-spacing="0.5" fill="hsl(28 12% 38%)">libreta de atleta</text>
+</svg>

@@ -10,8 +10,8 @@ const COLORS: Record<1 | 2 | 3 | 4 | 5, string> = {
 
 const DESCRIPTIONS: Record<1 | 2 | 3 | 4 | 5, string> = {
   1: "Muy suave",
-  2: "Suave · aeróbico",
-  3: "Moderado · tempo",
+  2: "Aeróbico",
+  3: "Tempo",
   4: "Umbral",
   5: "VO2max",
 };

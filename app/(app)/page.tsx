@@ -187,7 +187,9 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Zonas de FC</CardTitle>
             <CardDescription>
-              {zones.length > 0 ? "Calculadas a partir de tu FC máxima." : "Configura tu FC máxima en Perfil."}
+              {zones.length > 0 && profile?.fc_max
+                ? `Calculadas a partir de tu FC máxima (${profile.fc_max}).`
+                : "Configura tu FC máxima en Perfil."}
             </CardDescription>
           </CardHeader>
           <CardContent>
