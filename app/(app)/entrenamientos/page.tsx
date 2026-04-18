@@ -59,6 +59,8 @@ export default async function EntrenamientosPage() {
         <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {rows.map((w) => {
             const date = new Date(w.started_at);
+            const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+            const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
             const km = w.distance_m != null ? (w.distance_m / 1000).toFixed(1) : null;
             return (
               <li key={w.id}>
@@ -69,8 +71,7 @@ export default async function EntrenamientosPage() {
                   <div className="flex flex-col">
                     <span className="font-medium">{w.title || sportLabel(w.sport)}</span>
                     <span className="text-xs text-muted-foreground">
-                      {sportLabel(w.sport)} · {date.toLocaleDateString()}{" "}
-                      {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {sportLabel(w.sport)} · {iso} {time}
                     </span>
                   </div>
                   <div className="text-right text-xs">

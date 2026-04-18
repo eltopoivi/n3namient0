@@ -71,9 +71,9 @@ export function SimpleLineChart({
             y1={band.min}
             y2={band.max}
             fill={color}
-            fillOpacity={0.08}
+            fillOpacity={0.12}
             stroke={color}
-            strokeOpacity={0.25}
+            strokeOpacity={0.3}
             strokeDasharray="3 3"
             {...(band.label
               ? { label: { value: band.label, position: "insideTopRight", fontSize: 10, fill: color } }

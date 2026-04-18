@@ -46,22 +46,22 @@ export function HrZonesBar({ zones }: { zones: Zone[] }) {
           );
         })}
       </div>
-      <ul className="grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-2 md:grid-cols-5">
+      <ul className="grid grid-cols-2 gap-1.5 text-[11px] sm:grid-cols-3 md:grid-cols-5">
         {zones.map((z) => (
           <li
             key={z.zone}
-            className="flex items-center gap-2 rounded border border-border bg-card px-2 py-1.5"
+            className="flex items-start gap-1.5 rounded border border-border bg-card px-2 py-2"
           >
             <span
               aria-hidden
-              className="h-3 w-3 shrink-0 rounded-sm"
+              className="mt-[3px] h-2.5 w-2.5 shrink-0 rounded-sm"
               style={{ background: COLORS[z.zone] }}
             />
-            <span className="flex flex-col leading-tight">
+            <span className="flex min-w-0 flex-col gap-[3px] leading-[1.35]">
               <span className="font-medium">
-                Z{z.zone} · {z.min}–{z.max} bpm
+                Z{z.zone} · {z.min}–{z.max}
               </span>
-              <span className="text-muted-foreground">{DESCRIPTIONS[z.zone]}</span>
+              <span className="text-[10px] text-muted-foreground">{DESCRIPTIONS[z.zone]}</span>
             </span>
           </li>
         ))}

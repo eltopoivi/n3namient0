@@ -137,18 +137,18 @@ export default async function WorkoutDetailPage({
         <CardHeader>
           <CardTitle>Resumen</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 text-sm">
+        <CardContent className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
           <Stat label="Duración" value={formatDuration(w.duration_s)} />
           {km ? <Stat label="Distancia" value={`${km} km`} /> : null}
+          {w.pace_s_per_km != null ? <Stat label="Ritmo" value={formatPace(w.pace_s_per_km)} /> : null}
           {w.avg_hr != null ? <Stat label="FC media" value={`${w.avg_hr} bpm`} /> : null}
           {w.avg_power_w != null ? <Stat label="Potencia" value={`${w.avg_power_w} W`} /> : null}
-          {w.pace_s_per_km != null ? <Stat label="Ritmo" value={formatPace(w.pace_s_per_km)} /> : null}
+          {w.elev_gain_m != null ? <Stat label="D+" value={`${w.elev_gain_m} m`} /> : null}
+          {w.elev_loss_m != null ? <Stat label="D−" value={`${w.elev_loss_m} m`} /> : null}
           {w.vam_m_per_h != null ? (
             <Stat label="VAM" value={`${Math.round(w.vam_m_per_h)} m/h`} />
           ) : null}
-          {w.elev_gain_m != null ? <Stat label="Desnivel +" value={`${w.elev_gain_m} m`} /> : null}
-          {w.elev_loss_m != null ? <Stat label="Desnivel −" value={`${w.elev_loss_m} m`} /> : null}
-          {w.calories != null ? <Stat label="Calorías" value={`${w.calories} kcal`} /> : null}
+          {w.calories != null ? <Stat label="kcal" value={`${w.calories}`} /> : null}
         </CardContent>
       </Card>
 
@@ -166,9 +166,9 @@ export default async function WorkoutDetailPage({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-muted p-3">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="font-medium">{value}</div>
+    <div className="rounded border border-border bg-background px-3 py-2 text-center">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-sm font-medium">{value}</div>
     </div>
   );
 }

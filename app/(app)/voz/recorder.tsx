@@ -243,31 +243,33 @@ export function VoiceRecorder() {
           <CardDescription>{helpText}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-6 py-8">
-          <button
-            type="button"
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={isUploading}
-            className={cn(
-              "flex h-28 w-28 items-center justify-center rounded-full border-2 transition-colors",
-              isRecording
-                ? "border-destructive bg-destructive/10 text-destructive"
-                : "border-border bg-card text-foreground hover:bg-accent",
-              isUploading && "opacity-50",
-            )}
-            aria-label={isRecording ? "Detener grabación" : "Empezar a grabar"}
-          >
-            {isRecording ? (
-              <Square className="h-10 w-10" fill="currentColor" />
-            ) : (
-              <Mic className="h-10 w-10" />
-            )}
+          <div className="relative">
             {isRecording ? (
               <span
                 aria-hidden
-                className="absolute h-28 w-28 animate-ping rounded-full border-2 border-destructive/40"
+                className="pointer-events-none absolute -inset-0.5 animate-ping rounded-full border-2 border-destructive/40"
               />
             ) : null}
-          </button>
+            <button
+              type="button"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isUploading}
+              className={cn(
+                "relative flex h-28 w-28 items-center justify-center rounded-full border-2 transition-colors",
+                isRecording
+                  ? "border-destructive bg-destructive/10 text-destructive"
+                  : "border-border bg-card text-foreground hover:bg-accent",
+                isUploading && "opacity-50",
+              )}
+              aria-label={isRecording ? "Detener grabación" : "Empezar a grabar"}
+            >
+              {isRecording ? (
+                <Square className="h-10 w-10" fill="currentColor" />
+              ) : (
+                <Mic className="h-10 w-10" />
+              )}
+            </button>
+          </div>
 
           <div className="text-center">
             <div className="font-mono text-2xl tabular-nums">{formatElapsed(elapsed)}</div>
